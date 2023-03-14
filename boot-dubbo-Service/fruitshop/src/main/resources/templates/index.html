@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta charset="utf-8">
+    <!--使⽤X-UA-Compatible来设置IE浏览器兼容模式 最新的渲染模式-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--
+    viewport表示⽤户是否可以缩放⻚⾯；
+    width指定视区的逻辑宽度；
+    device-width指示视区宽度应为设备的屏幕宽度；
+    initial-scale指令⽤于设置Web⻚⾯的初始缩放⽐例
+    initial-scale=1则将显示未经缩放的Web⽂档
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/jquery/jquery-3.6.3.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<!--引用模板（内容复用）-->
+<div th:replace="~{temp :: top}"></div>
+<h1>这里他🐎的是主页，谁敢放肆？！</h1>
+
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta charset="utf-8">
+    <!--使⽤X-UA-Compatible来设置IE浏览器兼容模式 最新的渲染模式-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--
+    viewport表示⽤户是否可以缩放⻚⾯；
+    width指定视区的逻辑宽度；
+    device-width指示视区宽度应为设备的屏幕宽度；
+    initial-scale指令⽤于设置Web⻚⾯的初始缩放⽐例
+    initial-scale=1则将显示未经缩放的Web⽂档
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/jquery/jquery-3.6.3.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:inline="javascript">
+        //当前页是否只有一条记录
+        hasNext=0;
+        //<!--pnum是页流动参数，永远指向当前页-->
+        pnum=1;
+        //每页展示数量
+        psize=6;
+        $(function(){
+        <!--首次展示页面-->
+        <!--last参数是总页数，也就是最后一页的页码-->
+        last=query(1,psize);
+        <!--判断是否该页面第一次调用分页函数，是：采用同步方式分页（为了拿到回调函数的返回值），否采用异步-->
+        var isFirst=1;
+        <!--下一页实现-->
+        $("#d-btn").click(function() {
+            $("#allCk").prop("checked",false);
+            var pageSize=psize;
+            var pageNum;
+            if(last>pnum) {
+                pageNum = (++pnum);
+                hasNext=0;
+                query(pageNum,pageSize,isFirst);
+            }else
+                return;
+        });
+        <!--上一页-->
+            $("#next-btn").click(function() {
+                $("#allCk").prop("checked",false);
+                var pageSize=psize;
+                var pageNum;
+                if(pnum!=1) {
+                    pageNum = (--pnum);
+                    hasNext=0;
+                    query(pageNum,pageSize,isFirst);
+                }
+                else
+                    return;
+            });
+        //添加确认
+            $("#addConfirm").click(function (){
+                var name=$("#nameBox")[0].value;
+                var age=$("#ageBox")[0].value;
+                if(name==""){
+                    name="无名";
+                }
+                if(age==""){
+                    age=0;
+                }
+                $.ajax({
+                    url:"/jiNiTaiMei/addStudentOne.do",
+                    data:{
+                        name:name,
+                        age:age
+                    },
+                    type:"post",
+                    dataType:"json",
+                    success:function(data){
+                        if(data.code==1){
+                            alert("添加成功");
+                            <!--添加完成自动关闭模态框-->
+                            $("#myModalForAdd").modal("hide");
+                            last=query(1, psize, 1);
+                            pnum=1;
+                        }else{
+                            alert(data.someThing);
+                        }
+                    },
+                    error:function (){
+                        alert("错误");
+                    }
+                });
+            });
+            //全选
+            $("#allCk").click(function (){
+                $("#show input[type='checkbox']").prop("checked",this.checked);
+            });
+
+            //下拉更改每页展示数量
+            $("#selectPageSize").change(function (){
+                // alert($("#selectPageSize option:selected").val());
+                psize=$("#selectPageSize option:selected").val();
+                pnum=1;
+                last=query(pnum,psize,1);
+                $("#allCk").prop("checked",false);
+            });
+            //全选（全部子选选中）
+            $("#show").on("click","input",function(){
+                if($("#show input[type='checkbox']").length==$("#show input[type='checkbox']:checked").length){
+                    $("#allCk").prop("checked",true);
+                }else{
+                    $("#allCk").prop("checked",false);
+                }
+            });
+            //批量删除第一部分删除列表展示
+            $("#deMore").click(function (){
+                var ckSize=$("#show input[type='checkbox']:checked").length;
+                if(ckSize==0){
+                    alert("请选择要删除的数据");
+                    return;
+                }
+                // if(confirm("确定要删除"))
+                var ids="";
+                $.each($("#show input[type='checkbox']:checked"),function (index,obj){
+                    ids+=obj.value+",";
+                });
+                ids=ids.substring(0,ids.length-1);
+                $.ajax({
+                    url:"/jiNiTaiMei/listOfStudent.do",
+                    data:{
+                        id:ids
+                    },
+                    type:"post",
+                    dataType:"json",
+                    success:function (data){
+                        var htmlStr="";
+                        $.each(data,function (index,obj){
+                            htmlStr+="<tr class=\"active\">" +
+                                "<th><div style=\"width: 30px;height: 30px;margin: 5px;border-radius: 15px;overflow: hidden\">" +
+                                "<img style=\"width: 30px;height: 30px\" src=\"http://127.0.0.1:8080/jiNiTaiMei/img/74ce7a15b770467dbce3f45675364798.webp\">" +
+                                "</div></th>"+
+                                "<th>"+obj.id+"</th>"+
+                                "<th>"+obj.name+"</th>"+
+                                "<th>"+obj.age+"</th>"+
+                                "</tr>";
+                        });
+                        $("#showDe").html(htmlStr);
+                        $("#myModalForDeMore").modal("show");
+                    },
+                    error:function (){
+                        alert("错误");
+                    }
+                });
+
+            });
+
+
+        });
+        //全选（全部子选选中）//成功的写法但是不推荐，耦合度太高
+       /* function selectK(){
+            if($("#show input[type='checkbox']").length==$("#show input[type='checkbox']:checked").length){
+                $("#allCk").prop("checked",true);
+            }else{
+                $("#allCk").prop("checked",false);
+            }
+           // alert($("#show input[type='checkbox']").length+"&"+$("#show input[type='checkbox']:checked").length);
+        }*/
+
+        //个人详情页面
+        function showDetails(id){
+            $("#myModalForShow").modal("show");
+            $.ajax({
+               url:"/jiNiTaiMei/details.do",
+               data:{
+                   id:id
+               },
+               type:"post",
+               dataType:"json",
+               success:function (data){
+                   $("#myTitle").html("<span style='color: #ac2925'>"+data.name+"</span>"+"道友");
+                   $("#age").html("年龄:"+data.age);
+               } ,
+                error: function () {
+                    alert("错误");
+                }
+            });
+        }
+        //根据id删除(局部按钮)
+        function deleteId(id){
+            if(confirm("确定要删除吗？")) {
+                $.ajax({
+                    url: "/jiNiTaiMei/reStudentById.do",
+                    // url:"/jiNiTaiMei/reTest.do",
+                    data: {
+                        id: id
+                    },
+                    type: "post",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.code == 0) {
+                            alert(data.someThing);
+                        } else {
+                            <!--删除完成后保持当前页面刷新-->
+                            if(hasNext==1&&pnum==last) {
+                                hasNext=0;
+                                last=query(--pnum, psize, 1);
+                            }else{
+                                hasNext=0;
+                                last=query(pnum,psize,1);
+                            }
+                            alert("删除成功");
+                        }
+                    },
+                    error: function () {
+                        alert("错误");
+                    }
+                });
+            }
+
+        }
+        <!--展示页面数据-->
+        function query(pageNum,pageSize,isFirst=1){
+            var last=1;
+            var async=true;
+            //解决异步无法正确获得返回值
+            //第一次执行设置为同步
+            //之后的翻页、查询都是异步的
+            if(isFirst==1)
+                async=false;
+            else
+                async=true;
+            $.ajax({
+                url:"/jiNiTaiMei/student.do/"+pageNum.toString()+"/"+pageSize.toString(),
+                // data:{
+                //     pageNum:pageNum,
+                //     pageSize:pageSize
+                // },
+                type:'post',
+                dataType:'json',
+                async:async,
+                success:function (data) {
+                    var htmlStr="";
+                    $.each(data.list,function(index,obj){
+                        htmlStr+= "<tr class=\"active\"> "+"<th>"+"<input type='checkbox'"+
+                            "value='"+obj.id+"'"+">"+"</th>"+
+                            "<th onclick='showDetails("+obj.id+")'><div style=\"width: 30px;height: 30px;margin: 5px;border-radius: 15px;overflow: hidden\">\n" +
+                            "              <img style=\"width: 30px;height: 30px\" src=\"http://127.0.0.1:8080/jiNiTaiMei/img/74ce7a15b770467dbce3f45675364798.webp\">\n" +
+                            "          </div></th>"+
+                            "<th onclick='showDetails("+obj.id+")'>"+obj.id+"</th>"+
+                            "<th onclick='showDetails("+obj.id+")'>"+obj.name+"</th>"+
+                            "<th onclick='showDetails("+obj.id+")'>"+obj.age+"</th>"+
+                            "<th>"+"<div  onclick='deleteId("+obj.id+")' class='btn btn-danger'>删除"+"</div>"
+                            +"<div class='btn btn-info' style='margin-left: auto'>修改</div>"+"</th>"
+                            +"</tr>"
+                        hasNext++;
+                    });
+                    //因为是分页，所以采用html函数刷新内容而不是append追加内容
+                    $("#show").html(htmlStr);
+                    // $("#show").append(htmlStr);
+                    last=data.pages;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    // alert(XMLHttpRequest.status);//状态码
+                    // alert(XMLHttpRequest.readyState);//状态
+                    console.log("error");
+                }
+            });
+            return last;
+        }
+
+    </script>
+</head>
+<body>
+<div th:replace="~{temp :: top}"></div>
+<a th:href="@{/toStudent.do}">->道友</a><br><br>
+   <button class="btn btn-danger btn-lg" data-toggle="modal" data-target="#myModalForAdd" style="width: 80px">添加</button>
+    <button class="btn btn-default btn-lg" style="margin-left:auto;width: 80px" id="deMore">删除</button>
+    <table  class="table table-hover table-bordered" >
+      <tr class="active">
+        <th><input type="checkbox" id="allCk"></th>
+        <th>大头贴</th>
+        <th>id</th>
+        <th>name</th>
+        <th>age</th>
+        <th></th>
+      </tr>
+      <tbody id="show">
+
+      </tbody>
+    </table>
+
+<div>
+    <div class="btn btn-info " id="next-btn">上一页</div>
+    <div style="margin-left: auto" class="btn btn-info" id="d-btn">下一页</div>
+    <select id="selectPageSize" name="pgSize" style="margin-left:auto;bottom: auto;">
+        <option value="1">1</option>
+        <option value="3">3</option>
+        <option value="6" selected>6</option>
+        <option value="8">8</option>
+        <option value="10">10</option>
+        <option value="30">30</option>
+    </select>
+</div>
+
+
+<!--添加模态窗口-->
+<div class="modal fade" id="myModalForAdd" tabindex="-1"
+     role="dialog" aria-labelledby="myModalLabel" ariahidden="true" data-backdrop="static" data-keyboard="false">
+<!--  后面两个属性是模态窗口点击区域外不关闭  -->
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h2 class="modal-title" id="myModalLabel" >添加道友</h2>
+            </div>
+
+            <div class="modal-body"> <!--可修改区-->
+                <table class="table">
+                    <tr>
+                        <th>
+                            <div></div>
+                            <ul class="list-unstyled" style="margin-left: 180px">
+                                <li>道友名字:<input type="text" id="nameBox"></li>
+                                <br><br>
+                                <li>道友年龄:<input type="text" id="ageBox"></li>
+                            </ul>
+                        </th>
+                    </tr>
+
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="addConfirm">确认</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+
+<!--详情模态窗口-->
+<!--添加模态窗口-->
+<div class="modal fade" id="myModalForShow" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" ariahidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h2 class="modal-title" id="myTitle" ></h2>
+                <div style="width: 60px;height: 60px;margin: 5px;border-radius: 30px;overflow: hidden">
+                         <img style="width: 60px;height: 60px" src="http://127.0.0.1:8080/jiNiTaiMei/img/74ce7a15b770467dbce3f45675364798.webp">
+                </div>
+                <div style="margin-left: 185px"><span><b>代号:79523</b></span></div>
+            </div>
+
+            <div class="modal-body"> <!--可修改区-->
+                <table class="table">
+                    <tr>
+                        <th>
+                            <div></div>
+                            <ul class="list-unstyled" style="margin-left: 180px">
+                                <li style="padding:0px;">
+                                     官职:<span style=" font-style:italic/*文字斜体*/;background:
+                                     linear-gradient(to right, red, orange, yellow, orange, red, orange, yellow, orange, red);
+                                    -webkit-background-clip: text;/*背景颜色以文本方式剪切*/
+                                    -webkit-text-fill-color: transparent;/*填充为透明色让之前设置的背景颜色显示出来*/">
+                                     群星闪耀</span>
+                                </li>
+                                <br>
+                                <br>
+                                <li id="age"></li>
+                                <br>
+                                <br>
+                                <li>平生:
+                                    斩杀了成千上万以计的妖兽，最后甚至触怒了外海的几大妖族王者，因此而向人族基地发动攻击，连累了许多无辜者丧命
+                                </li>
+                            </ul>
+                        </th>
+                    </tr>
+
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary">确认</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+
+
+<!--群删列表模态框-->
+<!--添加模态窗口-->
+<div class="modal fade" id="myModalForDeMore" tabindex="-1"
+     role="dialog" aria-labelledby="myModalLabel" ariahidden="true" data-backdrop="static" data-keyboard="false">
+    <!--  后面两个属性是模态窗口点击区域外不关闭  -->
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h2 class="modal-title" id="deMoreSt" ><span style="color: #a94442">确定要消灭以下道友吗？</span></h2>
+            </div>
+
+            <div class="modal-body" style=" overflow-y:auto; overflow-x:auto; width:600px; height:250px;">
+                <table  class="table table-hover table-bordered" >
+                    <tbody id="showDe">
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">算了算了</button>
+                <button type="button" class="btn btn-primary" id="deMoreConfirm">确认消灭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+</body>
+</html>

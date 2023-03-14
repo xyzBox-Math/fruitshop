@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta charset="utf-8">
+    <!--使⽤X-UA-Compatible来设置IE浏览器兼容模式 最新的渲染模式-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--
+    viewport表示⽤户是否可以缩放⻚⾯；
+    width指定视区的逻辑宽度；
+    device-width指示视区宽度应为设备的屏幕宽度；
+    initial-scale指令⽤于设置Web⻚⾯的初始缩放⽐例
+    initial-scale=1则将显示未经缩放的Web⽂档
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/jquery/jquery-3.6.3.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+
+</head>
+<body>
+<div class="panel panel-success" >
+    <div class="panel-heading text-center h1">
+        草鸡飞升系统
+    </div>
+    </div>
+  <div style="width:200px;height:600px;background-color: #777777;float: left;">
+      <div style="width:200px;height:200px;background-color: #777777 ;" class="h1 text-center">
+          <div style="width: 150px;height: 150px;margin: 20px;border-radius: 75px;overflow: hidden">
+              <img style="width: 150px;height: 150px" src="http://127.0.0.1:8080/jiNiTaiMei/img/74ce7a15b770467dbce3f45675364798.webp">
+          </div>
+          <span>欢迎使用</span>
+      </div>
+      <table class="table table-bordered table-hover">
+          <tr class="active">
+              <th class="text-center"><a th:href="@{/fly.do}" target="if">飞升</a></th>
+          </tr>
+          <tr class="active">
+              <th class="text-center"><a th:href="@{/fight.do}" target="if">格斗</a></th>
+          </tr>
+          <tr class="active">
+              <th class="text-center"><a th:href="@{/toStudent.do}" target="if">道友</a></th>
+          </tr>
+          <tr class="active">
+              <th class="text-center"><a th:href="@{/testIndex.do}" target="if">测试</a></th>
+          </tr>
+      </table>
+  </div>
+ <div style="margin-left: 200px;height: 600px;" class="h1 text-center">
+     <iframe th:src="@{/fIndex.do}" name="if" style="border: none;width:1320px;height: 600px">
+     </iframe>
+ </div>
+
+</body>
+</html>
